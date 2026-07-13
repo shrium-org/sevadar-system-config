@@ -12,7 +12,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: '${REDIS_PASSWORD:{cipher}REPLACE_WITH_ENCRYPTED_VALUE}'
+      password: '${REDIS_PASSWORD:1101}'
       lettuce:
         pool:
           max-active: 20
@@ -26,14 +26,14 @@ spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5431}/user-service
     username: ${DB_USERNAME:sevadar}
-    password: '${DB_PASSWORD:{cipher}REPLACE_WITH_ENCRYPTED_VALUE}'
+    password: '${DB_PASSWORD:sevadar}'
 
 keycloak:
   admin:
     server-url: "https://dev.shrium.com"
     realm: "sevadar"
     client-id: "admin-cli"
-    client-secret: '${KEYCLOAK_ADMIN_SECRET:{cipher}REPLACE_WITH_ENCRYPTED_VALUE}'
+    client-secret: '${KEYCLOAK_ADMIN_SECRET:9lBlM9LE3o987eUijiSHwPlu3Tj8TBgT}'
     grant-type: client_credentials
 
 axon:
