@@ -1,15 +1,73 @@
 server:
-  port: 8084
+  port: 8085
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/media_service_db
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5431}/media-service
+    username: ${DB_USERNAME:sevadar}
+    password: '${DB_PASSWORD:{cipher}REPLACE_WITH_ENCRYPTED_VALUE}'
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 15
+
   jpa:
     hibernate:
-      ddl-auto: validate
-    show-sql: false
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
-cdn:
-  base-url: ${CDN_BASE_URL:https://cdn.example.com}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+    consumer:
+      group-id: media-service-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: 'com.socialmedia.*'
+
+minio:
+  endpoint:   ${MINIO_ENDPOINT:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: '${MINIO_SECRET_KEY:{cipher}REPLACE_WITH_ENCRYPTED_VALUE}'
+  bucket:
+    originals: media-originals
+    processed: media-processed
+
+axon:
+  axonserver:
+    servers: ${AXON_SERVER:localhost:8124}
+    component-name: media-service
+    context: default
+  serializer:
+    general: jackson
+    events: jackson
+    messages: jackson
+  eventhandling:
+    processors:
+      com.shrium.media_service.axon:
+        mode: tracking
+        initial-segment-count: 1
+        # ⚠️ carried over from your original file — see note below
+        and-reset: true
+        reset-to: tail
+
+media:
+  cdn:
+    base-url: ${CDN_BASE_URL:https://dev.shrium.com/media/media-processed}
+  ffmpeg:
+    path: ${FFMPEG_PATH:/usr/bin/ffmpeg}
+  tmp:
+    dir: ${TMP_DIR:/tmp/media-processing}
+
+# service-specific metric tag, useful once you have several axon processors
+management:
+  metrics:
+    tags:
+      component: media-processing

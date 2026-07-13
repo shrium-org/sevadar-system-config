@@ -1,0 +1,79 @@
+server:
+  port: 8081
+
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: '${REDIS_PASSWORD:{cipher}REPLACE_WITH_ENCRYPTED_VALUE}'
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 20
+            redis-rate-limiter.burstCapacity: 40
+            redis-rate-limiter.requestedTokens: 1
+            key-resolver: '#{@userKeyResolver}'
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - 'http://localhost:3000'
+              - 'https://yourdomain.com'
+            allowedMethods: [GET, POST, PUT, DELETE, PATCH, OPTIONS]
+            allowedHeaders: ['*']
+            allowCredentials: true
+            maxAge: 3600
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+    loadbalancer:
+      enabled: true
+
+# ── Per-route circuit breakers (extends the shared 'default' config) ──
+resilience4j:
+  circuitbreaker:
+    instances:
+      user-service-cb:
+        baseConfig: default
+      post-service-cb:
+        baseConfig: default
+      feed-service-cb:
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 30
+  timelimiter:
+    instances:
+      user-service-cb:
+        timeoutDuration: 3s
+      post-service-cb:
+        timeoutDuration: 3s
+      feed-service-cb:
+        timeoutDuration: 2s
+      media-service-cb:
+        timeoutDuration: 30s
+
+# ── Gateway-specific observability tweaks ──────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,gateway,circuitbreakers,metrics
+  metrics:
+    tags:
+      component: edge
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.shrium.api_gateway: DEBUG

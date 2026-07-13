@@ -1,23 +1,85 @@
-# Shared defaults inherited by every service, unless overridden in
-# that service's own <service-name>.yml in this same repo.
+# =====================================================================
+# GLOBAL CONFIG — applies to every service unless overridden in
+# <service-name>.yml or <service-name>-<profile>.yml
+# =====================================================================
 
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:https://dev.shrium.com/realms/sevadar}
+
+# ── Service Discovery ────────────────────────────────────────────────
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+    fetch-registry: true
+    register-with-eureka: true
   instance:
     prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}:${random.value}
 
+# ── Observability ──────────────────────────────────────────────────
+# 1. Metrics  -> Prometheus scrapes /actuator/prometheus on every node
+# 2. Tracing  -> OpenTelemetry via Micrometer Tracing, exported OTLP
+#                to an OTel Collector, which fans out to Tempo/Zipkin
+# 3. Logging  -> trace/span IDs injected into every console log line
+#                so logs, metrics and traces correlate (MELT)
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,refresh,metrics
+        include: health,info,prometheus,metrics,circuitbreakers,gateway,env,loggers
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        resilience4j.circuitbreaker.calls: true
+  tracing:
+    enabled: true
+    sampling:
+      probability: ${TRACE_SAMPLING_PROBABILITY:1.0}   # dev = 100%, override to ~0.1 in prod
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_URI:http://localhost:9411/api/v2/spans}
+      export:
+        enabled: ${ZIPKIN_ENABLED:false}   # flip true if you use Zipkin instead of OTel Collector
 
+# ── Logging (shared pattern, correlatable with traces) ────────────────
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-},%X{spanId:-}] %-5level %logger{36} - %msg%n"
   level:
     root: INFO
-    org.springframework.cloud: INFO
+    com.shrium: INFO
+    org.springframework.security: INFO
+
+# ── Resilience4j shared defaults (services can override/add instances) ─
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 3s

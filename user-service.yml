@@ -1,12 +1,55 @@
 server:
-  port: 8081
+  port: 8082
 
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/user_service_db
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: '${REDIS_PASSWORD:{cipher}REPLACE_WITH_ENCRYPTED_VALUE}'
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+
   jpa:
     hibernate:
-      ddl-auto: validate
-    show-sql: false
+      ddl-auto: update
+    show-sql: true
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5431}/user-service
+    username: ${DB_USERNAME:sevadar}
+    password: '${DB_PASSWORD:{cipher}REPLACE_WITH_ENCRYPTED_VALUE}'
+
+keycloak:
+  admin:
+    server-url: "https://dev.shrium.com"
+    realm: "sevadar"
+    client-id: "admin-cli"
+    client-secret: '${KEYCLOAK_ADMIN_SECRET:{cipher}REPLACE_WITH_ENCRYPTED_VALUE}'
+    grant-type: client_credentials
+
+axon:
+  axonserver:
+    servers: ${AXON_SERVER:localhost:8124}
+    component-name: user-service
+    context: default
+  serializer:
+    general: jackson
+    events: jackson
+    messages: jackson
+
+cache:
+  profile-ttl-minutes: 30
+
+management:
+  metrics:
+    tags:
+      component: identity

@@ -1,1 +1,0 @@
-# sevadar-system-config
