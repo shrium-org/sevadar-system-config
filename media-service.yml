@@ -63,7 +63,7 @@ media:
   storage:
     public-endpoint: ${MINIO_PUBLIC_ENDPOINT:https://dev.shrium.com/media}
   cdn:
-    base-url: ${CDN_BASE_URL:https://dev.shrium.com/media/media-processed}
+    base-url: ${CDN_BASE_URL:https://cdn.shrium.com/media/media-processed}
   ffmpeg:
     path: ${FFMPEG_PATH:/usr/bin/ffmpeg}
   tmp:
