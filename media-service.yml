@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5431}/media-service
+    url: jdbc:postgresql://${DB_HOST:sevadar-sevadar-db}:${DB_PORT:5431}/media-service
     username: ${DB_USERNAME:sevadar}
     password: '${DB_PASSWORD:sevadar}'
     driver-class-name: org.postgresql.Driver
