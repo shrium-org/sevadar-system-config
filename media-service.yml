@@ -34,7 +34,7 @@ spring:
 
 minio:
   endpoint:   ${MINIO_ENDPOINT:http://localhost:9000}
-  public-url: https://dev.shrium.com/media
+  public-url: https://cdn.shrium.com
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: '${MINIO_SECRET_KEY:minioadmin}'
   bucket:
