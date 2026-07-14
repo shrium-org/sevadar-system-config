@@ -59,6 +59,8 @@ axon:
         reset-to: tail
 
 media:
+  storage:
+    public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://localhost:9000}
   cdn:
     base-url: ${CDN_BASE_URL:https://dev.shrium.com/media/media-processed}
   ffmpeg:
