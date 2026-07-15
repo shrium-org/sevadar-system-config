@@ -33,7 +33,7 @@ keycloak:
     server-url: "https://dev.shrium.com"
     realm: "sevadar"
     client-id: "admin-cli"
-    client-secret: '${KEYCLOAK_ADMIN_SECRET:wGLIPvSLSmzCsJDBHGkgUMxxrHHRZrDk}'
+    client-secret: '${KEYCLOAK_ADMIN_SECRET:OD7iyvkEoFKtfD9OmWdDW8LtDzbWLDah}'
     grant-type: client_credentials
 
 axon:
