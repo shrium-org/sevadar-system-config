@@ -25,17 +25,7 @@ spring:
           max-active: 20
           max-idle: 10
 
-axon:
-  axonserver:
-    servers: ${AXON_SERVER:localhost:8124}
-    # ⚠️ was "user-service" in your original file — fixed to event-service.
-    # If this was intentional (shared context grouping), revert it.
-    component-name: event-service
-    context: default
-  serializer:
-    general: jackson
-    events: jackson
-    messages: jackson
+
 
 management:
   metrics:
